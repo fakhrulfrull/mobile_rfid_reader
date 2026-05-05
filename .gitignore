@@ -51,3 +51,5 @@ windows/flutter/ephemeral/
 # OS files
 .DS_Store
 Thumbs.db
+
+.history/

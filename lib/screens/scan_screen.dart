@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/rfid_frequency.dart';
 import '../models/rfid_tag.dart';
 import '../services/rfid_service.dart';
 import '../widgets/frequency_selector.dart';
@@ -70,8 +71,7 @@ class ScanScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _toggleScan(
-      BuildContext context, RfidService service) async {
+  Future<void> _toggleScan(BuildContext context, RfidService service) async {
     if (service.isScanning) {
       await service.stopScan();
     } else {
