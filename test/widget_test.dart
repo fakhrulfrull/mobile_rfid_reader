@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:mobile_rfid_reader/models/rfid_frequency.dart';
 import 'package:mobile_rfid_reader/models/rfid_tag.dart';
 import 'package:mobile_rfid_reader/services/rfid_service.dart';
+import 'package:mobile_rfid_reader/services/mock_rfid_adapter.dart';
 import 'package:mobile_rfid_reader/widgets/frequency_selector.dart';
 
 // ── Model tests ──────────────────────────────────────────────────────────────
@@ -84,20 +85,19 @@ void main() {
     late RfidService service;
 
     setUp(() {
-      service = RfidService();
+      service = RfidService(hardware: MockRfidAdapter());
     });
 
     tearDown(() {
       service.dispose();
     });
 
-    test('default frequency is UHF 860–960 MHz', () {
-      expect(service.selectedFrequency, RfidFrequency.uhf860_960MHz);
+    test('default frequency is LF 125 kHz', () {
+      expect(service.selectedFrequency, RfidFrequency.lf125kHz);
     });
 
     test('default connection state is disconnected', () {
-      expect(service.connectionState,
-          ReaderConnectionState.disconnected);
+      expect(service.connectionState, ReaderConnectionState.disconnected);
     });
 
     test('setFrequency changes the selected frequency', () async {
@@ -109,7 +109,7 @@ void main() {
       var notifyCount = 0;
       service.addListener(() => notifyCount++);
 
-      await service.setFrequency(RfidFrequency.uhf860_960MHz);
+      await service.setFrequency(RfidFrequency.lf125kHz);
       expect(notifyCount, 0);
     });
 
@@ -134,8 +134,7 @@ void main() {
     test('disconnect transitions back to disconnected', () async {
       await service.connect();
       await service.disconnect();
-      expect(service.connectionState,
-          ReaderConnectionState.disconnected);
+      expect(service.connectionState, ReaderConnectionState.disconnected);
     });
   });
 
@@ -143,14 +142,14 @@ void main() {
 
   group('FrequencySelector widget', () {
     Widget buildWidget({
-      RfidFrequency selected = RfidFrequency.uhf860_960MHz,
+      RfidFrequency selected = RfidFrequency.lf125kHz,
       bool enabled = true,
       ValueChanged<RfidFrequency>? onChanged,
     }) {
       return MaterialApp(
         home: Scaffold(
           body: ChangeNotifierProvider(
-            create: (_) => RfidService(),
+            create: (_) => RfidService(hardware: MockRfidAdapter()),
             child: FrequencySelector(
               selectedFrequency: selected,
               onFrequencyChanged: onChanged ?? (_) {},
