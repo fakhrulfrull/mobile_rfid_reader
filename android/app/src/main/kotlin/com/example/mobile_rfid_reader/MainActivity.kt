@@ -2,6 +2,9 @@ package com.example.mobile_rfid_reader
 
 import android.os.Handler
 import android.os.Looper
+import android.nfc.NfcAdapter
+import android.nfc.tech.Ndef
+import android.content.Context
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -304,38 +307,44 @@ class MainActivity: FlutterActivity() {
   private fun scanNfcTags() {
     // Real NFC scanning using Android's NFC API
     try {
-      val nfcAdapter = android.nfc.NfcAdapter.getDefaultAdapter(context)
+      val nfcAdapter = NfcAdapter.getDefaultAdapter(context)
       if (nfcAdapter == null) {
-        throw Exception("NFC not available on this device")
+        Handler(Looper.getMainLooper()).post {
+          scanEventSink?.error("NFC_NOT_AVAILABLE",
+            "NFC is not available on this device. Use external HF 13.56 MHz reader.",
+            null)
+        }
+        return
       }
 
-      // Enable reader mode to detect tags
+      // Enable reader mode to detect NFC tags
       nfcAdapter.enableReaderMode(
         this,
         { tag ->
           try {
             val uid = tag.id.joinToString("") { "%02X".format(it) }
-            val ndef = android.nfc.tech.Ndef.get(tag)
-            val maxSize = ndef?.maxSize ?: 0
 
             emitTag(
               id = uid,
               epc = uid,
-              rssi = -50 // NFC tags have fixed range
+              rssi = -50 // NFC tags have fixed ~2cm range
             )
           } catch (e: Exception) {
-            // Tag read error
+            // Tag read error, continue scanning
           }
         },
-        android.nfc.NfcAdapter.FLAG_READER_NFC_A or
-        android.nfc.NfcAdapter.FLAG_READER_NFC_B or
-        android.nfc.NfcAdapter.FLAG_READER_NFC_F or
-        android.nfc.NfcAdapter.FLAG_READER_NFC_V or
-        android.nfc.NfcAdapter.FLAG_READER_NFC_BARCODE,
+        NfcAdapter.FLAG_READER_NFC_A or
+        NfcAdapter.FLAG_READER_NFC_B or
+        NfcAdapter.FLAG_READER_NFC_F or
+        NfcAdapter.FLAG_READER_NFC_V,
         null
       )
     } catch (e: Exception) {
-      // NFC not available or error
+      Handler(Looper.getMainLooper()).post {
+        scanEventSink?.error("NFC_ERROR",
+          "NFC scanning failed: ${e.message}",
+          null)
+      }
     }
   }
 
@@ -350,11 +359,31 @@ class MainActivity: FlutterActivity() {
     //     }
     //   }
 
-    // Placeholder: wait for hardware
-    Handler(Looper.getMainLooper()).post {
-      scanEventSink?.error("HF_READER_NOT_CONFIGURED",
-        "External HF 13.56 MHz reader not configured. Install reader SDK and update scanExternalHfReader().",
-        null)
+    try {
+      // Wait for hardware with timeout
+      var elapsedTime = 0L
+      val timeoutMs = 500L
+
+      while (isScanning && scanEventSink != null && elapsedTime < timeoutMs) {
+        try {
+          Thread.sleep(10)
+          elapsedTime += 10
+        } catch (e: InterruptedException) {
+          break
+        }
+      }
+
+      if (elapsedTime >= timeoutMs && isScanning) {
+        Handler(Looper.getMainLooper()).post {
+          scanEventSink?.error("HF_READER_NOT_CONFIGURED",
+            "External HF 13.56 MHz reader not configured. Install reader SDK in scanExternalHfReader().",
+            null)
+        }
+      }
+    } catch (e: Exception) {
+      Handler(Looper.getMainLooper()).post {
+        scanEventSink?.error("HF_ERROR", e.message, null)
+      }
     }
   }
 
@@ -381,29 +410,29 @@ class MainActivity: FlutterActivity() {
       //     }
       //   }
 
-      // Start real scanning loop
-      while (isScanning && scanEventSink != null) {
-        try {
-          // REPLACE THIS: Call your 433 MHz reader SDK
-          // Example: val tags = activeTagReader?.scan(frequency = 433_000_000)
-          // tags?.forEach { emitTag(...) }
+      // Wait for hardware with timeout
+      var elapsedTime = 0L
+      val timeoutMs = 500L
 
-          // Placeholder waiting for hardware
-          Thread.sleep(100)
+      while (isScanning && scanEventSink != null && elapsedTime < timeoutMs) {
+        try {
+          Thread.sleep(10)
+          elapsedTime += 10
         } catch (e: InterruptedException) {
           break
-        } catch (e: Exception) {
-          Handler(Looper.getMainLooper()).post {
-            scanEventSink?.error("UHF433_SCAN_ERROR", e.message, null)
-          }
-          break
+        }
+      }
+
+      if (elapsedTime >= timeoutMs && isScanning) {
+        Handler(Looper.getMainLooper()).post {
+          scanEventSink?.error("UHF433_READER_NOT_CONFIGURED",
+            "UHF 433 MHz reader not configured. Install reader SDK in scanUhf433MHz().",
+            null)
         }
       }
     } catch (e: Exception) {
       Handler(Looper.getMainLooper()).post {
-        scanEventSink?.error("UHF433_CONFIG_ERROR",
-          "UHF 433 MHz reader not configured: ${e.message}",
-          null)
+        scanEventSink?.error("UHF433_ERROR", e.message, null)
       }
     }
   }
@@ -439,32 +468,29 @@ class MainActivity: FlutterActivity() {
       //     }
       //   }
 
-      // Start real scanning loop
-      while (isScanning && scanEventSink != null) {
-        try {
-          // REPLACE THIS: Call your UHF 860-960 MHz reader SDK
-          // Example:
-          //   val tags = epcGen2Reader?.scan()
-          //   tags?.forEach { tag ->
-          //     emitTag(id = tag.epc, epc = tag.epc, rssi = tag.rssi)
-          //   }
+      // Wait for hardware with timeout
+      var elapsedTime = 0L
+      val timeoutMs = 500L
 
-          // Placeholder waiting for hardware
-          Thread.sleep(100)
+      while (isScanning && scanEventSink != null && elapsedTime < timeoutMs) {
+        try {
+          Thread.sleep(10)
+          elapsedTime += 10
         } catch (e: InterruptedException) {
           break
-        } catch (e: Exception) {
-          Handler(Looper.getMainLooper()).post {
-            scanEventSink?.error("UHF_SCAN_ERROR", e.message, null)
-          }
-          break
+        }
+      }
+
+      if (elapsedTime >= timeoutMs && isScanning) {
+        Handler(Looper.getMainLooper()).post {
+          scanEventSink?.error("UHF_READER_NOT_CONFIGURED",
+            "UHF 860-960 MHz reader not configured. Install reader SDK in scanUhf860_960MHz().",
+            null)
         }
       }
     } catch (e: Exception) {
       Handler(Looper.getMainLooper()).post {
-        scanEventSink?.error("UHF_CONFIG_ERROR",
-          "UHF 860-960 MHz reader not configured: ${e.message}",
-          null)
+        scanEventSink?.error("UHF_ERROR", e.message, null)
       }
     }
   }
