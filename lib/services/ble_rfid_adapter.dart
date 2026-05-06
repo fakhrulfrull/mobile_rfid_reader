@@ -17,7 +17,10 @@ class BleRfidAdapter implements RfidHardwareAdapter {
   String get adapterName => 'BLE RFID Reader';
 
   @override
-  List<RfidFrequency> get supportedFrequencies => RfidFrequency.values;
+  List<RfidFrequency> get supportedFrequencies => const [
+        RfidFrequency.lf125kHz,
+        RfidFrequency.lf134kHz,
+      ];
 
   @override
   bool get isConnected => _isConnected;

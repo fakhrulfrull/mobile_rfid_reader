@@ -153,6 +153,7 @@ void main() {
             child: FrequencySelector(
               selectedFrequency: selected,
               onFrequencyChanged: onChanged ?? (_) {},
+              supportedFrequencies: RfidFrequency.values.toSet(),
               enabled: enabled,
             ),
           ),

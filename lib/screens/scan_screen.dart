@@ -32,6 +32,7 @@ class ScanScreen extends StatelessWidget {
                   selectedFrequency: service.selectedFrequency,
                   onFrequencyChanged: (freq) =>
                       context.read<RfidService>().setFrequency(freq),
+                  supportedFrequencies: service.supportedFrequencies.toSet(),
                   enabled: !service.isScanning,
                 ),
               ),

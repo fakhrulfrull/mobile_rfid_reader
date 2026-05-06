@@ -29,6 +29,11 @@ class RfidService extends ChangeNotifier {
 
   StreamSubscription<RfidTag>? _scanSubscription;
 
+  RfidFrequency get _fallbackFrequency =>
+      hardware.supportedFrequencies.isNotEmpty
+          ? hardware.supportedFrequencies.first
+          : RfidFrequency.lf125kHz;
+
   // ── Public getters ────────────────────────────────────────────────────────
 
   RfidFrequency get selectedFrequency => _selectedFrequency;
@@ -37,9 +42,15 @@ class RfidService extends ChangeNotifier {
   List<RfidTag> get scannedTags => List.unmodifiable(_scannedTags);
   String? get errorMessage => _errorMessage;
   bool get isConnected => _connectionState == ReaderConnectionState.connected;
+  List<RfidFrequency> get supportedFrequencies =>
+      List.unmodifiable(hardware.supportedFrequencies);
 
   /// Constructor: inject the hardware adapter to use.
-  RfidService({required this.hardware});
+  RfidService({required this.hardware}) {
+    if (!hardware.supportedFrequencies.contains(_selectedFrequency)) {
+      _selectedFrequency = _fallbackFrequency;
+    }
+  }
 
   // ── Frequency selection ───────────────────────────────────────────────────
 
@@ -47,6 +58,13 @@ class RfidService extends ChangeNotifier {
   Future<void> setFrequency(RfidFrequency frequency) async {
     if (_selectedFrequency == frequency) return;
     if (_isScanning) await stopScan();
+
+    if (!supportedFrequencies.contains(frequency)) {
+      _errorMessage =
+          '${frequency.label} is not supported by ${hardware.adapterName}.';
+      notifyListeners();
+      return;
+    }
 
     _selectedFrequency = frequency;
     _errorMessage = null;
@@ -58,6 +76,10 @@ class RfidService extends ChangeNotifier {
   /// Connect to the RFID reader hardware via the active adapter.
   Future<void> connect() async {
     if (_connectionState == ReaderConnectionState.connected) return;
+
+    if (!supportedFrequencies.contains(_selectedFrequency)) {
+      _selectedFrequency = _fallbackFrequency;
+    }
 
     _connectionState = ReaderConnectionState.connecting;
     _errorMessage = null;
@@ -96,6 +118,13 @@ class RfidService extends ChangeNotifier {
   /// Start scanning for RFID tags at the selected frequency.
   Future<void> startScan() async {
     if (_isScanning) return;
+    if (!supportedFrequencies.contains(_selectedFrequency)) {
+      _errorMessage =
+          '${_selectedFrequency.label} is not supported by ${hardware.adapterName}.';
+      notifyListeners();
+      return;
+    }
+
     if (!isConnected) {
       await connect();
       if (!isConnected) return;

@@ -9,12 +9,14 @@ import '../models/rfid_frequency.dart';
 class FrequencySelector extends StatelessWidget {
   final RfidFrequency selectedFrequency;
   final ValueChanged<RfidFrequency> onFrequencyChanged;
+  final Set<RfidFrequency> supportedFrequencies;
   final bool enabled;
 
   const FrequencySelector({
     super.key,
     required this.selectedFrequency,
     required this.onFrequencyChanged,
+    required this.supportedFrequencies,
     this.enabled = true,
   });
 
@@ -59,6 +61,7 @@ class FrequencySelector extends StatelessWidget {
                   frequencies: entry.value,
                   selectedFrequency: selectedFrequency,
                   onFrequencyChanged: enabled ? onFrequencyChanged : (_) {},
+                  supportedFrequencies: supportedFrequencies,
                   enabled: enabled,
                 )),
           ],
@@ -73,6 +76,7 @@ class _BandSection extends StatelessWidget {
   final List<RfidFrequency> frequencies;
   final RfidFrequency selectedFrequency;
   final ValueChanged<RfidFrequency> onFrequencyChanged;
+  final Set<RfidFrequency> supportedFrequencies;
   final bool enabled;
 
   const _BandSection({
@@ -80,6 +84,7 @@ class _BandSection extends StatelessWidget {
     required this.frequencies,
     required this.selectedFrequency,
     required this.onFrequencyChanged,
+    required this.supportedFrequencies,
     required this.enabled,
   });
 
@@ -118,6 +123,7 @@ class _BandSection extends StatelessWidget {
                       frequency: freq,
                       isSelected: freq == selectedFrequency,
                       onTap: () => onFrequencyChanged(freq),
+                      supportedFrequencies: supportedFrequencies,
                       enabled: enabled,
                     ))
                 .toList(),
@@ -132,12 +138,14 @@ class _FrequencyChip extends StatelessWidget {
   final RfidFrequency frequency;
   final bool isSelected;
   final VoidCallback onTap;
+  final Set<RfidFrequency> supportedFrequencies;
   final bool enabled;
 
   const _FrequencyChip({
     required this.frequency,
     required this.isSelected,
     required this.onTap,
+    required this.supportedFrequencies,
     required this.enabled,
   });
 
@@ -147,20 +155,23 @@ class _FrequencyChip extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Tooltip(
-      message: '${frequency.description}\nRange: ${frequency.readRange}',
+      message: supportedFrequencies.contains(frequency)
+          ? '${frequency.description}\nRange: ${frequency.readRange}'
+          : '${frequency.description}\nNot supported by the current reader.',
       child: ChoiceChip(
         label: Text(frequency.label),
         selected: isSelected,
-        onSelected: enabled ? (_) => onTap() : null,
+        onSelected: enabled && supportedFrequencies.contains(frequency)
+            ? (_) => onTap()
+            : null,
         selectedColor: colorScheme.primaryContainer,
         labelStyle: TextStyle(
           color: isSelected
               ? colorScheme.onPrimaryContainer
-              : enabled
+              : enabled && supportedFrequencies.contains(frequency)
                   ? colorScheme.onSurface
                   : colorScheme.onSurface.withOpacity(0.4),
-          fontWeight:
-              isSelected ? FontWeight.bold : FontWeight.normal,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
         avatar: isSelected
             ? Icon(Icons.check, size: 16, color: colorScheme.onPrimaryContainer)
