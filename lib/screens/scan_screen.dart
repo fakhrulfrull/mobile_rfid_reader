@@ -5,6 +5,7 @@ import '../models/rfid_frequency.dart';
 import '../models/rfid_tag.dart';
 import '../services/rfid_service.dart';
 import '../widgets/frequency_selector.dart';
+import '../modules/shelf_navigation/screens/shelf_navigation_screen.dart';
 
 /// Main screen that shows the frequency picker, connection controls, and
 /// the live list of scanned RFID tags.
@@ -19,6 +20,17 @@ class ScanScreen extends StatelessWidget {
           appBar: AppBar(
             title: const Text('RFID Reader'),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.map_outlined),
+                tooltip: 'Shelf Navigation',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ShelfNavigationScreen(),
+                    ),
+                  );
+                },
+              ),
               _ConnectionButton(service: service),
               const SizedBox(width: 8),
             ],

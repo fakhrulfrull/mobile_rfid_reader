@@ -1,0 +1,8 @@
+{
+  "items": [
+    { "name": "milk", "section": "Dairy" },
+    { "name": "chips", "section": "Snacks" },
+    { "name": "olive oil", "section": "Oil & Spices" },
+    { "name": "apple", "section": "Fresh Produce" }
+  ]
+}

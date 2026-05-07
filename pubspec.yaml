@@ -17,6 +17,9 @@ dependencies:
   flutter_svg: ^2.0.10
   file_picker: ^8.0.0
   xml: ^6.5.0
+  sensors_plus: ^6.1.2
+  flutter_compass: ^0.8.1
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +30,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/data/sample_shopping_list.json

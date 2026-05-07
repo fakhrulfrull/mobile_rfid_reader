@@ -102,6 +102,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_compass:
+    dependency: "direct main"
+    description:
+      name: flutter_compass
+      sha256: "1b4d7e6c95a675ec8482b5c9c9ccf1ebf0ced3dbec59dce28ad609da953de850"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -137,7 +145,7 @@ packages:
     source: sdk
     version: "0.0.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: b9c29a161230ee03d3ccf545097fccd9b87a5264228c5d348202e0f0c28f9010
@@ -192,6 +200,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   matcher:
     dependency: transitive
     description:
@@ -344,6 +360,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.5+1"
+  sensors_plus:
+    dependency: "direct main"
+    description:
+      name: sensors_plus
+      sha256: "89e2bfc3d883743539ce5774a2b93df61effde40ff958ecad78cd66b1a8b8d52"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.2"
+  sensors_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: sensors_plus_platform_interface
+      sha256: "58815d2f5e46c0c41c40fb39375d3f127306f7742efe3b891c0b1c87e2b5cd5d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   shared_preferences:
     dependency: "direct main"
     description:
