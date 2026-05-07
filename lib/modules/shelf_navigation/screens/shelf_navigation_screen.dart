@@ -19,7 +19,8 @@ class ShelfNavigationScreen extends StatefulWidget {
 }
 
 class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
-  Offset _position = const Offset(0.38, 0.92);
+  // Spawn just inside the ENTRANCE gate (bottom-centre-left of new map).
+  Offset _position = const Offset(0.28, 0.90);
   double _heading = 0.0;
   bool _tracking = false;
 
@@ -33,93 +34,138 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
 
   DateTime _lastStepAt = DateTime.fromMillisecondsSinceEpoch(0);
 
-  // Target = walkable access point in front of / beside each section.
-  // Calibrated from store_map.png (1152×765 px, 16:10 ratio).
+  // Target = walkable access point calibrated to new 1536×1024 (3:2) map.
   final Map<String, Offset> _targets = const {
-    // Back-wall counters – stand in the top corridor (y ≈ 0.20)
-    'Dairy': Offset(0.12, 0.20),
-    'Frozen Foods': Offset(0.32, 0.20),
-    'Meat & Seafood': Offset(0.53, 0.20),
-    'Deli': Offset(0.73, 0.20),
-    'Bakery': Offset(0.92, 0.20),
-    // Centre aisles – stand in the inter-shelf aisle at mid height (y ≈ 0.47)
-    // Aisle centre-lines (between columns): 0.23, 0.33, 0.43, 0.53, 0.63, 0.73
-    'Beverages': Offset(0.13, 0.47), // main left corridor beside col-1
-    'Snacks': Offset(0.23, 0.47), // aisle between col-1 and col-2
-    'Cereal': Offset(0.33, 0.47), // aisle between col-2 and col-3
-    'Pasta & Sauces': Offset(0.43, 0.47), // aisle between col-3 and col-4
-    'Canned Goods': Offset(0.53, 0.47), // aisle between col-4 and col-5
-    'Condiments': Offset(0.63, 0.47), // aisle between col-5 and col-6
-    'Oil & Spices': Offset(0.73, 0.47), // aisle between col-6 and col-7
-    // Right-wall sections – stand in corridor left of the right-wall units
-    'Fresh Produce': Offset(0.83, 0.30),
-    'Organic': Offset(0.83, 0.57),
-    'Flowers & Plants': Offset(0.83, 0.77),
-    // Checkout – central area in front of the checkout counters
-    'Checkout': Offset(0.38, 0.86),
+    // ── Back-wall counters: stand in the top corridor (y ≈ 0.19) ──────
+    'Dairy': Offset(0.17, 0.19),
+    'Frozen Foods': Offset(0.34, 0.19),
+    'Meat & Seafood': Offset(0.52, 0.19),
+    'Deli': Offset(0.70, 0.19),
+    'Bakery': Offset(0.86, 0.19),
+    // ── Left-wall units: stand in the right-side aisle of each unit ───
+    'Baby Care': Offset(0.16, 0.23),
+    'Household': Offset(0.16, 0.34),
+    'Cleaning': Offset(0.16, 0.46),
+    'Pet Care': Offset(0.16, 0.59),
+    // ── Centre shelves: stand in the aisle gap next to each column ────
+    // Left corridor  → Beverages (left side of col-1)
+    'Beverages': Offset(0.14, 0.44),
+    // Aisle col-1/col-2 → Snacks
+    'Snacks': Offset(0.265, 0.44),
+    // Aisle col-2/col-3 → Cereal
+    'Cereal': Offset(0.37, 0.44),
+    // Aisle col-3/col-4 → Pasta & Sauces
+    'Pasta & Sauces': Offset(0.47, 0.44),
+    // Aisle col-4/col-5 → Canned Goods
+    'Canned Goods': Offset(0.57, 0.44),
+    // Aisle col-5/col-6 → Condiments
+    'Condiments': Offset(0.67, 0.44),
+    // Right aisle before right-wall units → Oil & Spices
+    'Oil & Spices': Offset(0.845, 0.44),
+    // ── Right-wall units: stand in the corridor to the left ───────────
+    'Fresh Produce': Offset(0.84, 0.28),
+    'Organic': Offset(0.84, 0.50),
+    'Flowers & Plants': Offset(0.84, 0.67),
+    // ── Self Checkout & EXIT: stand in front of gates ─────────────────
+    'Checkout': Offset(0.50, 0.88),
   };
 
   final Map<String, String> _catalog = const {
-    'milk': 'Dairy',
-    'cheese': 'Dairy',
-    'yogurt': 'Dairy',
-    'ice cream': 'Frozen Foods',
-    'pizza': 'Frozen Foods',
-    'chicken': 'Meat & Seafood',
-    'beef': 'Meat & Seafood',
-    'bread': 'Bakery',
-    'bun': 'Bakery',
-    'juice': 'Beverages',
-    'soda': 'Beverages',
-    'chips': 'Snacks',
-    'biscuit': 'Snacks',
-    'cereal': 'Cereal',
-    'pasta': 'Pasta & Sauces',
-    'beans': 'Canned Goods',
-    'ketchup': 'Condiments',
-    'olive oil': 'Oil & Spices',
-    'apple': 'Fresh Produce',
-    'banana': 'Fresh Produce',
-    'organic oats': 'Organic',
-    'flower': 'Flowers & Plants',
+    // Dairy
+    'milk': 'Dairy', 'cheese': 'Dairy', 'yogurt': 'Dairy', 'butter': 'Dairy',
+    // Frozen Foods
+    'ice cream': 'Frozen Foods', 'pizza': 'Frozen Foods',
+    'frozen meal': 'Frozen Foods',
+    // Meat & Seafood
+    'chicken': 'Meat & Seafood', 'beef': 'Meat & Seafood',
+    'fish': 'Meat & Seafood', 'salmon': 'Meat & Seafood',
+    'prawn': 'Meat & Seafood',
+    // Bakery
+    'bread': 'Bakery', 'bun': 'Bakery', 'croissant': 'Bakery', 'cake': 'Bakery',
+    // Beverages
+    'juice': 'Beverages', 'soda': 'Beverages', 'water': 'Beverages',
+    'coffee': 'Beverages', 'tea': 'Beverages',
+    // Snacks
+    'chips': 'Snacks', 'biscuit': 'Snacks', 'chocolate': 'Snacks',
+    'nuts': 'Snacks', 'popcorn': 'Snacks',
+    // Cereal
+    'cereal': 'Cereal', 'oats': 'Cereal', 'granola': 'Cereal',
+    // Pasta & Sauces
+    'pasta': 'Pasta & Sauces', 'noodle': 'Pasta & Sauces',
+    'tomato sauce': 'Pasta & Sauces', 'pesto': 'Pasta & Sauces',
+    // Canned Goods
+    'beans': 'Canned Goods', 'tuna can': 'Canned Goods',
+    'canned tomato': 'Canned Goods', 'soup': 'Canned Goods',
+    // Condiments
+    'ketchup': 'Condiments', 'mustard': 'Condiments',
+    'mayonnaise': 'Condiments', 'soy sauce': 'Condiments',
+    // Oil & Spices
+    'olive oil': 'Oil & Spices', 'salt': 'Oil & Spices',
+    'pepper': 'Oil & Spices', 'vinegar': 'Oil & Spices',
+    // Fresh Produce
+    'apple': 'Fresh Produce', 'banana': 'Fresh Produce',
+    'lettuce': 'Fresh Produce', 'tomato': 'Fresh Produce',
+    'carrot': 'Fresh Produce', 'onion': 'Fresh Produce',
+    // Organic
+    'organic oats': 'Organic', 'organic milk': 'Organic',
+    'organic eggs': 'Organic', 'organic juice': 'Organic',
+    // Flowers & Plants
+    'flower': 'Flowers & Plants', 'plant': 'Flowers & Plants',
+    'rose': 'Flowers & Plants', 'pot plant': 'Flowers & Plants',
+    // Left-wall sections
+    'diapers': 'Baby Care', 'baby food': 'Baby Care', 'wipes': 'Baby Care',
+    'detergent': 'Household', 'tissue': 'Household', 'trash bag': 'Household',
+    'bleach': 'Cleaning', 'mop': 'Cleaning', 'sponge': 'Cleaning',
+    'dog food': 'Pet Care', 'cat food': 'Pet Care', 'pet toy': 'Pet Care',
   };
 
-  // Non-walkable zones calibrated to store_map.png.
-  // Coordinate system: left=0.0, right=1.0 / top=0.0, bottom=1.0.
-  // Walkable corridors are the gaps left between these rects.
+  // Non-walkable zones calibrated to new 1536×1024 (3:2) store map.
+  // Each rect: fromLTWH(left, top, width, height) in 0.0–1.0 normalised coords.
   final List<Rect> _blocked = const [
-    // ── Back-wall counter units (y 0.02 – 0.19) ──────────────────────
-    Rect.fromLTWH(0.02, 0.02, 0.21, 0.17), // Dairy counter
-    Rect.fromLTWH(0.23, 0.02, 0.17, 0.17), // Frozen Foods counter
-    Rect.fromLTWH(0.40, 0.02, 0.21, 0.17), // Meat & Seafood counter
-    Rect.fromLTWH(0.61, 0.02, 0.14, 0.17), // Deli counter
-    Rect.fromLTWH(0.78, 0.02, 0.20, 0.17), // Bakery counter
+    // ── Back-wall counter units ───────────────────────────────────────
+    Rect.fromLTWH(0.09, 0.02, 0.16, 0.15), // Dairy
+    Rect.fromLTWH(0.27, 0.02, 0.14, 0.15), // Frozen Foods
+    Rect.fromLTWH(0.42, 0.02, 0.21, 0.15), // Meat & Seafood
+    Rect.fromLTWH(0.64, 0.02, 0.13, 0.15), // Deli
+    Rect.fromLTWH(0.78, 0.02, 0.17, 0.15), // Bakery
 
-    // ── Left-wall shelf units (x 0.01 – 0.13) ────────────────────────
-    Rect.fromLTWH(0.01, 0.20, 0.12, 0.13), // Baby Care
-    Rect.fromLTWH(0.01, 0.33, 0.12, 0.14), // Household
-    Rect.fromLTWH(0.01, 0.47, 0.12, 0.13), // Cleaning
-    Rect.fromLTWH(0.01, 0.60, 0.12, 0.15), // Pet Care
+    // ── Left-wall shelf units ─────────────────────────────────────────
+    Rect.fromLTWH(0.01, 0.17, 0.13, 0.12), // Baby Care
+    Rect.fromLTWH(0.01, 0.29, 0.13, 0.12), // Household
+    Rect.fromLTWH(0.01, 0.41, 0.13, 0.12), // Cleaning
+    Rect.fromLTWH(0.01, 0.53, 0.13, 0.13), // Pet Care
 
-    // ── 7 centre shelf columns (x 0.14 – 0.82, y 0.22 – 0.72) ───────
-    // Each column 0.08 wide; aisles ≈ 0.02 between each pair.
-    Rect.fromLTWH(0.14, 0.22, 0.08, 0.50), // col-1  Beverages
-    Rect.fromLTWH(0.24, 0.22, 0.08, 0.50), // col-2  Snacks
-    Rect.fromLTWH(0.34, 0.22, 0.08, 0.50), // col-3  Cereal
-    Rect.fromLTWH(0.44, 0.22, 0.08, 0.50), // col-4  Pasta & Sauces
-    Rect.fromLTWH(0.54, 0.22, 0.08, 0.50), // col-5  Canned Goods
-    Rect.fromLTWH(0.64, 0.22, 0.08, 0.50), // col-6  Condiments
-    Rect.fromLTWH(0.74, 0.22, 0.08, 0.50), // col-7  Oil & Spices
+    // ── 7 centre shelf columns ────────────────────────────────────────
+    // Column width ≈ 0.08; aisle gap ≈ 0.025 between each pair.
+    Rect.fromLTWH(0.17, 0.18, 0.08, 0.52), // col-1  Beverages
+    Rect.fromLTWH(0.28, 0.18, 0.08, 0.52), // col-2  Snacks
+    Rect.fromLTWH(0.38, 0.18, 0.08, 0.52), // col-3  Cereal
+    Rect.fromLTWH(0.48, 0.18, 0.08, 0.52), // col-4  Pasta & Sauces
+    Rect.fromLTWH(0.58, 0.18, 0.08, 0.52), // col-5  Canned Goods
+    Rect.fromLTWH(0.68, 0.18, 0.08, 0.52), // col-6  Condiments
+    Rect.fromLTWH(0.77, 0.18, 0.07, 0.52), // col-7  Oil & Spices
 
     // ── Right-wall display units ──────────────────────────────────────
-    Rect.fromLTWH(0.84, 0.22, 0.15, 0.31), // Fresh Produce
-    Rect.fromLTWH(0.84, 0.55, 0.15, 0.13), // Organic
-    Rect.fromLTWH(0.84, 0.70, 0.15, 0.18), // Flowers & Plants + cart bay
+    Rect.fromLTWH(0.86, 0.13, 0.13, 0.31), // Fresh Produce
+    Rect.fromLTWH(0.86, 0.44, 0.13, 0.15), // Organic
+    Rect.fromLTWH(0.86, 0.59, 0.13, 0.19), // Flowers & Plants
+    Rect.fromLTWH(0.87, 0.78, 0.12, 0.15), // Cart rack
 
-    // ── Bottom zone ───────────────────────────────────────────────────
-    Rect.fromLTWH(0.01, 0.78, 0.12, 0.20), // Storage room
-    // Checkout lanes are walkable – not blocked.
+    // ── Bottom-left: Smart Trolley display ───────────────────────────
+    Rect.fromLTWH(0.01, 0.68, 0.23, 0.30),
+
+    // ── Self-Checkout gate structure (non-walkable kiosk body) ────────
+    Rect.fromLTWH(0.43, 0.72, 0.16, 0.09),
+
+    // ── Info panels: "How It Works" + "Need Help" ─────────────────────
+    Rect.fromLTWH(0.68, 0.73, 0.17, 0.17),
+    Rect.fromLTWH(0.84, 0.80, 0.15, 0.12),
   ];
+
+  // Fixed landmark positions for overlay rendering.
+  static const Offset _entrance = Offset(0.28, 0.90);
+  static const Offset _exit1 = Offset(0.47, 0.77);
+  static const Offset _exit2 = Offset(0.52, 0.77);
 
   @override
   void initState() {
@@ -401,7 +447,7 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: AspectRatio(
-                  aspectRatio: 16 / 10,
+                  aspectRatio: 3 / 2, // new map is 1536×1024
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final size =
@@ -418,6 +464,9 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
                               path: path,
                               heading: _heading,
                               mapSize: size,
+                              entrance: _ShelfNavigationScreenState._entrance,
+                              exit1: _ShelfNavigationScreenState._exit1,
+                              exit2: _ShelfNavigationScreenState._exit2,
                             ),
                           ),
                         ],
@@ -455,6 +504,9 @@ class _MapPainter extends CustomPainter {
   final List<Offset> path;
   final double heading;
   final Size mapSize;
+  final Offset entrance;
+  final Offset exit1;
+  final Offset exit2;
 
   _MapPainter({
     required this.user,
@@ -462,6 +514,9 @@ class _MapPainter extends CustomPainter {
     required this.path,
     required this.heading,
     required this.mapSize,
+    required this.entrance,
+    required this.exit1,
+    required this.exit2,
   });
 
   Offset _pixel(Offset normalized) {
@@ -469,8 +524,48 @@ class _MapPainter extends CustomPainter {
         normalized.dx * mapSize.width, normalized.dy * mapSize.height);
   }
 
+  void _drawLandmarkPin(
+    Canvas canvas,
+    Offset normalized,
+    Color color,
+    String label,
+  ) {
+    final p = _pixel(normalized);
+    final paint = Paint()..color = color;
+    // Circle base
+    canvas.drawCircle(p, 9, paint);
+    canvas.drawCircle(
+        p,
+        9,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5);
+    // Label
+    final tp = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 8,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(
+      canvas,
+      Offset(p.dx - tp.width / 2, p.dy - tp.height / 2),
+    );
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
+    // ── Entrance & Exit landmarks ──────────────────────────────────────
+    _drawLandmarkPin(canvas, entrance, Colors.green.shade700, 'IN');
+    _drawLandmarkPin(canvas, exit1, Colors.red.shade700, 'OUT');
+    _drawLandmarkPin(canvas, exit2, Colors.red.shade700, 'OUT');
+
     if (path.length > 1) {
       final route = Path();
       final first = _pixel(path.first);
@@ -516,6 +611,9 @@ class _MapPainter extends CustomPainter {
     return oldDelegate.user != user ||
         oldDelegate.target != target ||
         oldDelegate.heading != heading ||
-        oldDelegate.path != path;
+        oldDelegate.path != path ||
+        oldDelegate.entrance != entrance ||
+        oldDelegate.exit1 != exit1 ||
+        oldDelegate.exit2 != exit2;
   }
 }
