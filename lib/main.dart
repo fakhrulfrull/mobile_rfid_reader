@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,14 +6,19 @@ import 'screens/scan_screen.dart';
 import 'screens/frequency_info_screen.dart';
 import 'services/rfid_service.dart';
 import 'services/ble_rfid_adapter.dart';
+import 'web/screens/web_app.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => RfidService(hardware: BleRfidAdapter()),
-      child: const MobileRfidReaderApp(),
-    ),
-  );
+  if (kIsWeb) {
+    runApp(const WebApp());
+  } else {
+    runApp(
+      ChangeNotifierProvider(
+        create: (_) => RfidService(hardware: BleRfidAdapter()),
+        child: const MobileRfidReaderApp(),
+      ),
+    );
+  }
 }
 
 class MobileRfidReaderApp extends StatelessWidget {
