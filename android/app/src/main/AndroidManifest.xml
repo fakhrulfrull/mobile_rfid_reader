@@ -21,7 +21,8 @@
     <application
         android:label="RFID Reader"
         android:name="${applicationName}"
-        android:icon="@drawable/launch_background">
+        android:icon="@drawable/launch_background"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

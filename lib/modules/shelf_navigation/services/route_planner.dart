@@ -1,36 +1,31 @@
 import 'dart:ui';
 
+import '../models/shopping_item.dart';
+
 class RoutePlanner {
-  static List<String> optimizeStops({
+  static List<ShoppingItem> optimizeStops({
     required Offset start,
-    required List<String> sections,
-    required Map<String, Offset> sectionPoints,
+    required List<ShoppingItem> items,
+    required Offset? Function(ShoppingItem item) targetOf,
   }) {
-    final unique = <String>[];
-    final seen = <String>{};
-
-    for (final section in sections) {
-      if (seen.add(section) && sectionPoints.containsKey(section)) {
-        unique.add(section);
-      }
-    }
-
-    if (unique.isEmpty) return [];
-
-    final remaining = List<String>.from(unique);
-    final ordered = <String>[];
+    final remaining = items.where((item) => targetOf(item) != null).toList();
+    final ordered = <ShoppingItem>[];
     var current = start;
+
+    if (remaining.isEmpty) {
+      return ordered;
+    }
 
     while (remaining.isNotEmpty) {
       remaining.sort((a, b) {
-        final distanceA = _manhattan(current, sectionPoints[a]!);
-        final distanceB = _manhattan(current, sectionPoints[b]!);
+        final distanceA = _manhattan(current, targetOf(a)!);
+        final distanceB = _manhattan(current, targetOf(b)!);
         return distanceA.compareTo(distanceB);
       });
 
       final next = remaining.removeAt(0);
       ordered.add(next);
-      current = sectionPoints[next]!;
+      current = targetOf(next)!;
     }
 
     return ordered;

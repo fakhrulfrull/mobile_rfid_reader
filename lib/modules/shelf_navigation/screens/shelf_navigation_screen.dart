@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -33,17 +32,18 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
   final TextEditingController _itemController = TextEditingController();
   final TextEditingController _apiController = TextEditingController();
   final TextEditingController _webUrlController =
-      TextEditingController(text: 'https://www.copperandbrass.net/notebooks');
+      TextEditingController(text: 'http://192.168.14.88:9001/cart');
 
   WebViewController? _webViewController;
   String? _webLoadError;
+  bool _isRoomLayoutExpanded = false;
 
   double _leftPaneFraction = 0.42;
   PaneViewState _leftPaneState = PaneViewState.normal;
   PaneViewState _rightPaneState = PaneViewState.normal;
 
   List<ShoppingItem> _items = <ShoppingItem>[];
-  List<String> _stops = <String>[];
+  List<ShoppingItem> _stops = <ShoppingItem>[];
 
   StreamSubscription<CompassEvent>? _compassSub;
   StreamSubscription<UserAccelerometerEvent>? _accelSub;
@@ -59,15 +59,28 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
         defaultTargetPlatform == TargetPlatform.macOS;
   }
 
-  String? get _currentSection => _stops.isEmpty ? null : _stops.first;
+  ShoppingItem? get _currentItem => _stops.isEmpty ? null : _stops.first;
+
+  Offset? _targetForItem(ShoppingItem item) {
+    return item.location?.point ?? StoreLayout.targets[item.section];
+  }
+
+  String _itemSubtitle(ShoppingItem item) {
+    final aisle = item.location?.aisle ?? '';
+    if (aisle.isEmpty) {
+      return item.section;
+    }
+
+    return '${item.section} | $aisle';
+  }
 
   Offset? get _currentTarget {
-    final section = _currentSection;
-    if (section == null) {
+    final item = _currentItem;
+    if (item == null) {
       return null;
     }
 
-    return StoreLayout.targets[section];
+    return _targetForItem(item);
   }
 
   @override
@@ -131,14 +144,21 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
       return;
     }
 
-    var normalized = rawUrl.trim();
-    if (normalized.isEmpty) {
+    final input = rawUrl.trim();
+    if (input.isEmpty) {
       return;
     }
 
-    if (!normalized.startsWith('http://') &&
-        !normalized.startsWith('https://')) {
-      normalized = 'https://$normalized';
+    var normalized = input;
+    final hasScheme =
+        input.startsWith('http://') || input.startsWith('https://');
+    final looksLikeDomain = input.contains('.') && !input.contains(' ');
+
+    if (!hasScheme && !looksLikeDomain) {
+      final query = Uri.encodeQueryComponent(input);
+      normalized = 'https://www.google.com/search?q=$query';
+    } else if (!hasScheme) {
+      normalized = 'https://$input';
     }
 
     final uri = Uri.tryParse(normalized);
@@ -164,6 +184,12 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
         _webLoadError = 'Unable to open $normalized';
       });
     }
+  }
+
+  void _toggleRoomLayoutExpanded() {
+    setState(() {
+      _isRoomLayoutExpanded = !_isRoomLayoutExpanded;
+    });
   }
 
   void _toggleFullscreen({required bool isLeftPane}) {
@@ -402,15 +428,13 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
   }
 
   void _rebuildStops() {
-    final pendingSections = _items
-        .where((item) => !item.picked)
-        .map((item) => item.section)
-        .toList(growable: false);
+    final pendingItems =
+        _items.where((item) => !item.picked).toList(growable: false);
 
     _stops = RoutePlanner.optimizeStops(
       start: _position,
-      sections: pendingSections,
-      sectionPoints: StoreLayout.targets,
+      items: pendingItems,
+      targetOf: _targetForItem,
     );
   }
 
@@ -485,7 +509,8 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
                 child: TextField(
                   controller: _webUrlController,
                   decoration: const InputDecoration(
-                    labelText: 'Web URL',
+                    labelText: 'Web URL or Search',
+                    hintText: 'Paste a link or type keywords',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
@@ -632,58 +657,94 @@ class _ShelfNavigationScreenState extends State<ShelfNavigationScreen> {
         ),
         Padding(
           padding: const EdgeInsets.all(12),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Heading ${_heading.toStringAsFixed(0)} deg | ${_turnInstruction()}'
-              '${_currentSection != null ? ' | Next: $_currentSection' : ''}',
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Heading ${_heading.toStringAsFixed(0)} deg | ${_turnInstruction()}'
+                  '${_currentItem != null ? ' | Next: ${_currentItem!.name}' : ''}',
+                ),
+              ),
+              IconButton(
+                tooltip: _isRoomLayoutExpanded
+                    ? 'Collapse room layout'
+                    : 'Expand room layout',
+                onPressed: _toggleRoomLayoutExpanded,
+                icon: Icon(_isRoomLayoutExpanded
+                    ? Icons.fullscreen_exit
+                    : Icons.fullscreen),
+              ),
+            ],
           ),
         ),
-        SizedBox(
-          height: 48,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: _stops.length,
-            itemBuilder: (context, index) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Chip(
-                label: Text('${index + 1}. ${_stops[index]}'),
-                backgroundColor: index == 0 ? Colors.blue.shade50 : null,
+        if (_isRoomLayoutExpanded)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: StoreMapPanel(
+                user: _position,
+                target: target,
+                path: path,
+                heading: _heading,
+                entrance: StoreLayout.entrance,
+                exit1: StoreLayout.exit1,
+                exit2: StoreLayout.exit2,
+              ),
+            ),
+          )
+        else ...[
+          SizedBox(
+            height: 48,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: _stops.length,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Chip(
+                  label: Text(
+                    '${index + 1}. ${_stops[index].name} (${_stops[index].section})',
+                  ),
+                  backgroundColor: index == 0 ? Colors.blue.shade50 : null,
+                ),
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: StoreMapPanel(
-              user: _position,
-              target: target,
-              path: path,
-              heading: _heading,
-              entrance: StoreLayout.entrance,
-              exit1: StoreLayout.exit1,
-              exit2: StoreLayout.exit2,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: StoreMapPanel(
+                user: _position,
+                target: target,
+                path: path,
+                heading: _heading,
+                entrance: StoreLayout.entrance,
+                exit1: StoreLayout.exit1,
+                exit2: StoreLayout.exit2,
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: _items.length,
-            itemBuilder: (context, index) {
-              final item = _items[index];
-              return CheckboxListTile(
-                dense: true,
-                value: item.picked,
-                onChanged: (value) => _markPicked(index, value ?? false),
-                title: Text(item.name),
-                subtitle: Text(item.section),
-              );
-            },
+          Expanded(
+            child: ListView.builder(
+              itemCount: _items.length,
+              itemBuilder: (context, index) {
+                final item = _items[index];
+                return CheckboxListTile(
+                  dense: true,
+                  value: item.picked,
+                  onChanged: (value) => _markPicked(index, value ?? false),
+                  title: Text(item.name,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(
+                    _itemSubtitle(item),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              },
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

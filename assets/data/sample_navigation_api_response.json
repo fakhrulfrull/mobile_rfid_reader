@@ -1,0 +1,179 @@
+{
+  "requestId": "nav-demo-20260508-001",
+  "storeId": "panda-store-01",
+  "generatedAt": "2026-05-08T10:30:00Z",
+  "customer": {
+    "id": "cust-1001",
+    "name": "Demo Shopper"
+  },
+  "items": [
+    {
+      "id": "item-001",
+      "name": "milk",
+      "section": "Dairy",
+      "quantity": 2,
+      "location": {
+        "aisle": "A1",
+        "rack": "R1",
+        "shelf": "S2",
+        "bin": "B03",
+        "coordinate": "0.17,0.19"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-002",
+      "name": "frozen meal",
+      "section": "Frozen Foods",
+      "quantity": 1,
+      "location": {
+        "aisle": "A2",
+        "rack": "R1",
+        "shelf": "S3",
+        "bin": "B08",
+        "coordinate": "0.34,0.19"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-003",
+      "name": "salmon",
+      "section": "Meat & Seafood",
+      "quantity": 1,
+      "location": {
+        "aisle": "A3",
+        "rack": "R1",
+        "shelf": "S2",
+        "bin": "B05",
+        "coordinate": "0.52,0.19"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-004",
+      "name": "bread",
+      "section": "Bakery",
+      "quantity": 1,
+      "location": {
+        "aisle": "A5",
+        "rack": "R1",
+        "shelf": "S1",
+        "bin": "B02",
+        "coordinate": "0.86,0.19"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-005",
+      "name": "diapers",
+      "section": "Baby Care",
+      "quantity": 1,
+      "location": {
+        "aisle": "W1",
+        "rack": "R2",
+        "shelf": "S3",
+        "bin": "B06",
+        "coordinate": "0.16,0.23"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-006",
+      "name": "detergent",
+      "section": "Household",
+      "quantity": 1,
+      "location": {
+        "aisle": "W1",
+        "rack": "R3",
+        "shelf": "S1",
+        "bin": "B01",
+        "coordinate": "0.16,0.34"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-007",
+      "name": "chips",
+      "section": "Snacks",
+      "quantity": 3,
+      "location": {
+        "aisle": "C2",
+        "rack": "R4",
+        "shelf": "S2",
+        "bin": "B04",
+        "coordinate": "0.265,0.44"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-008",
+      "name": "pasta",
+      "section": "Pasta & Sauces",
+      "quantity": 2,
+      "location": {
+        "aisle": "C4",
+        "rack": "R4",
+        "shelf": "S3",
+        "bin": "B09",
+        "coordinate": "0.47,0.44"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-009",
+      "name": "beans",
+      "section": "Canned Goods",
+      "quantity": 4,
+      "location": {
+        "aisle": "C5",
+        "rack": "R4",
+        "shelf": "S1",
+        "bin": "B07",
+        "coordinate": "0.57,0.44"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-010",
+      "name": "olive oil",
+      "section": "Oil & Spices",
+      "quantity": 1,
+      "location": {
+        "aisle": "C7",
+        "rack": "R4",
+        "shelf": "S4",
+        "bin": "B12",
+        "coordinate": "0.845,0.44"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-011",
+      "name": "apple",
+      "section": "Fresh Produce",
+      "quantity": 6,
+      "location": {
+        "aisle": "P1",
+        "rack": "R5",
+        "shelf": "S1",
+        "bin": "B10",
+        "coordinate": "0.84,0.28"
+      },
+      "picked": false
+    },
+    {
+      "id": "item-012",
+      "name": "organic oats",
+      "section": "Organic",
+      "quantity": 1,
+      "location": {
+        "aisle": "P2",
+        "rack": "R5",
+        "shelf": "S2",
+        "bin": "B11",
+        "coordinate": "0.84,0.50"
+      },
+      "picked": false
+    }
+  ]
+}
